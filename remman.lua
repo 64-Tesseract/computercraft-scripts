@@ -41,7 +41,7 @@ function eventLoop ()
                 -- First chat argument is destination, check if this computer is targeted
                 if args[1] == tostring(os.computerID()) or (os.computerLabel() and args[1] == os.computerLabel()) then
                     table.remove(args, 1)
-                    parseComms({"chat", event[5] or event[2]}, args, {})
+                    parseComms({{"chat", event[5] or event[2]}}, args, {})
                 end
             end
 
@@ -125,7 +125,7 @@ function stringifyTable (table, tab)
         message = message .. "\n:"
         for t = 1,tab do message = message .. "    " end
 
-        message = message .. key .. ":" .. (type(val) == "table" and stringifyTable(val, tab + 1) or " " .. tostring(val))
+        message = message .. key .. " =" .. (type(val) == "table" and stringifyTable(val, tab + 1) or " " .. tostring(val))
     end
 
     return message
