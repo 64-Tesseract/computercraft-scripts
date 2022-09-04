@@ -88,7 +88,7 @@ function parseComms (replyChain, data, destination)
 end
 
 
-local function sendMessage (replyChain, data, destination)
+function sendMessage (replyChain, data, destination)
     if destination[1][1] == "chat" then
         if chat then
             local message = stringifyTable(data)
@@ -115,7 +115,7 @@ local function sendMessage (replyChain, data, destination)
 end
 
 
-local function stringifyTable (table, tab)
+function stringifyTable (table, tab)
     if tab == nil then tab = 0 end
     local message = ""
 
