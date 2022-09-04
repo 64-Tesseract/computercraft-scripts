@@ -58,7 +58,7 @@ function parseComms (replyChain, data, destination)
 
     else  -- No more destinations means this is the targeted computer
         if data[1] == "to" then  -- Player forwarding commands ("0 to 1 to 2")
-            local nextComputer = data.cmd[2]  -- Getting destination from "to ID"
+            local nextComputer = data[2]  -- Getting destination from "to ID"
             table.remove(data, 1)  -- Remove "to" command
             table.remove(data, 1)  -- Remove destination from data
             sendMessage(replyChain, data, {{"modem", nextComputer}})
