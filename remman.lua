@@ -31,16 +31,18 @@ function eventLoop ()
             end
 
         elseif eventType == "chat" then
-            -- Split chat arguments by spaces
-            local args = {}
-            for arg in string.gmatch("[^%s]+") do
-                table.insert(args, arg)
-            end
+            if contains(chatWhitelist, event[2]) then
+                -- Split chat arguments by spaces
+                local args = {}
+                for arg in string.gmatch("[^%s]+") do
+                    table.insert(args, arg)
+                end
 
-            -- First chat argument is destination, check if this computer is targeted
-            if args[1] == tostring(os.computerID()) or (os.computerLabel() and args[1] == os.computerLabel()) then
-                table.remove(args, 1)
-                parseComms({"chat", event[5] or event[2]}, args, {})
+                -- First chat argument is destination, check if this computer is targeted
+                if args[1] == tostring(os.computerID()) or (os.computerLabel() and args[1] == os.computerLabel()) then
+                    table.remove(args, 1)
+                    parseComms({"chat", event[5] or event[2]}, args, {})
+                end
             end
 
         elseif eventType == "comms_send" then
@@ -124,6 +126,15 @@ local function stringifyTable (table, tab)
     end
 
     return message
+end
+
+
+function contains (table, value)
+    for _, v in pairs(table) do
+        if value == v then return true end
+    end
+
+    return false
 end
 
 
