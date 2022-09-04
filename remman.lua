@@ -79,7 +79,7 @@ function parseComms (replyChain, data, destination)
                 table.insert(info.processes, multishell.getTitle(p))
             end
 
-            sendMessage(destination, info, replyChain)
+            sendMessage({}, info, replyChain)
 
         else  -- Command unknown, pass data as event
             os.queueEvent("comms_receive", replyChain, data)
@@ -89,6 +89,8 @@ end
 
 
 function sendMessage (replyChain, data, destination)
+    print("Sending message")
+    print("Destination: " .. stringifyTable(destination))
     if destination[1][1] == "chat" then
         if chat then
             local message = stringifyTable(data)
@@ -139,5 +141,5 @@ function contains (table, value)
 end
 
 
-multishell.setTitle(multishell.getCurrent(), "Remote Comms Manager v1.0")
+multishell.setTitle(multishell.getCurrent(), "RemCommsMan")
 eventLoop()
