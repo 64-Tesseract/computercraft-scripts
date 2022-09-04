@@ -3,7 +3,7 @@ local useChannel = 256
 local chatWhitelist = {"64_Tesseract", "IEATDIRT52"}
 
 local modem = peripheral.find("modem")
-local chat = peripheral.find("chat")
+local chat = peripheral.find("chatBox")
 
 if not modem and not chat then error("No modems attached") end
 
@@ -34,7 +34,7 @@ function eventLoop ()
             if contains(chatWhitelist, event[2]) then
                 -- Split chat arguments by spaces
                 local args = {}
-                for arg in string.gmatch("[^%s]+") do
+                for arg in string.gmatch(event[3], "[^%s]+") do
                     table.insert(args, arg)
                 end
 
@@ -117,12 +117,13 @@ end
 
 local function stringifyTable (table, tab)
     if tab == nil then tab = 0 end
+    local message = ""
 
     for key, val in pairs(table) do
-        message += "\n"
-        for t = 1,tab do message == "    " end
+        message = message .. "\n:"
+        for t = 1,tab do message = message .. "    " end
 
-        message += key .. ":" .. (type(val) == "table" and stringifyTable(val, tab + 1) or " " .. tostring(val))
+        message = message .. key .. ":" .. (type(val) == "table" and stringifyTable(val, tab + 1) or " " .. tostring(val))
     end
 
     return message
