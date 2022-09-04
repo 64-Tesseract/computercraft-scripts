@@ -37,7 +37,7 @@ end
 
 function move ()
     if willMoveOOR() then
-        logMsg("Tried to move out of range")
+        logMsg({status="out of range"})
         return false
     end
     
@@ -46,7 +46,7 @@ function move ()
         return true
     end
     
-    logMsg("Cannot move")
+    logMsg({status="cannot move"})
     return false
 end
 
@@ -79,7 +79,7 @@ function mod2 (val, max)
 end
 
 function dropUseless ()
-    logMsg("Emptying useless")
+    -- logMsg({status="emptying useless"})
     emptiedAny = false
     for slot = 1, 16 do
         turtle.select(slot)
@@ -312,15 +312,14 @@ function getRemoteInput ()
 end
 
 function parseCommands ()
-    if modem then modem.open(listenChannel) end
     while true do
         parallel.waitForAny(getLocalInput, getRemoteInput)
         
-        if command[0] == "stop" then
+        if command[1] == "stop" then
             logMsg({status="stopping"})
             -- saveSession()
             running = false
-        elseif command[0] == "pos" then
+        elseif command[1] == "pos" then
             logMsg({position={x=pos[1], z=pos[2], level=depth}})
         end
 
