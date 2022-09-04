@@ -301,12 +301,10 @@ end
 
 function getLocalInput ()
     local text = io.read()
-    chatArgs = {}
+    command = {}
     for arg in string.gmatch(text, "[^%s]+") do
-        table.insert(chatArgs, arg)
+        table.insert(command, arg)
     end
-
-    command = chatArgs[1]
 end
 
 function getRemoteInput ()
@@ -318,11 +316,11 @@ function parseCommands ()
     while true do
         parallel.waitForAny(getLocalInput, getRemoteInput)
         
-        if command == "stop" then
+        if command[0] == "stop" then
             logMsg({status="stopping"})
             -- saveSession()
             running = false
-        elseif command == "pos" then
+        elseif command[0] == "pos" then
             logMsg({position={x=pos[1], z=pos[2], level=depth}})
         end
 
