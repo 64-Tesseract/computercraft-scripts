@@ -302,7 +302,7 @@ end
 function getLocalInput ()
     local text = io.read()
     chatArgs = {}
-    for arg in string.gmatch(chatMessage, "[^%s]+") do
+    for arg in string.gmatch(text, "[^%s]+") do
         table.insert(chatArgs, arg)
     end
 
