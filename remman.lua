@@ -122,7 +122,7 @@ function stringifyTable (table, tab)
     local message = ""
 
     for key, val in pairs(table) do
-        message = message .. "\n:"
+        message = message .. "\n| "
         for t = 1,tab do message = message .. "    " end
 
         message = message .. key .. " =" .. (type(val) == "table" and stringifyTable(val, tab + 1) or " " .. tostring(val))
