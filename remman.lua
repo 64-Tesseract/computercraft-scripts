@@ -46,7 +46,7 @@ function eventLoop ()
             end
 
         elseif eventType == "comms_send" then
-            send_message({}, event[2], event[3])
+            sendMessage({}, event[2], event[3])
         end
     end
 end
