@@ -41,7 +41,7 @@ function eventLoop ()
                 -- First chat argument is destination, check if this computer is targeted
                 if args[1] == tostring(os.computerID()) or (os.computerLabel() and args[1] == os.computerLabel()) then
                     table.remove(args, 1)
-                    parseComms({{"chat", event[5] and event[2]}}, args, {})
+                    parseComms({{"chat", (not event[5]) or event[2]}}, args, {})
                 end
             end
 
@@ -95,7 +95,7 @@ function sendMessage (replyChain, data, destination)
         if chat then
             local message = stringifyTable(data)
             local prefix = os.computerLabel() and (os.computerLabel() .. " (" .. tostring(os.computerID() .. ")")) or tostring(os.computerID())
-            if destination[1][2] == false then
+            if destination[1][2] == true then
                 for _, player in ipairs(chatWhitelist) do
                     chat.sendMessageToPlayer(message, player, prefix)
                 end
