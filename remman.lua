@@ -1,14 +1,8 @@
--- Config
-local useChannel = 256
-local chatWhitelist = {"64_Tesseract", "IEATDIRT52"}
-
-local modem = peripheral.find("modem")
-local chat = peripheral.find("chatBox")
-
-if not modem and not chat then error("No modems attached") end
-
-if modem then modem.open(256) end
-
+-- Universal remote communications manager - can interface with modem, local terminal, & chat box
+-- Should run in the background with `bg`
+-- Communication chain is passed in modem packets, so returned values are passed back to origin
+-- Messages are received/sent with OS event queue
+-- To return a message to origin, pass the reply chain as the destination
 
 -- CUSTOM EVENTS
 -- "comms_receive"
@@ -19,13 +13,27 @@ if modem then modem.open(256) end
 -- 2: data
 -- 3: destination
 
+-- Config
+local useChannel = 256
+local chatWhitelist = {"64_Tesseract", "IEATDIRT52"}
+
+
+local modem = peripheral.find("modem")
+local chat = peripheral.find("chatBox")
+
+if not modem and not chat then error("No modems attached") end
+
+if modem then modem.open(useChannel) end
+
+
 function eventLoop ()
     while true do
         local event = {os.pullEvent()}
         local eventType = event[1]
 
         if eventType == "modem_message" then
-            if event[5].destination[2] == tostring(os.computerID()) or event[5].destination[2] == os.computerLabel() then
+            -- All modems receive the modem message which is the filtered manually, as destination may be its label
+            if event[5].destination[1][2] == tostring(os.computerID()) or (os.computerLabel() and event[5].destination[1][2] == os.computerLabel()) then
                 table.remove(event[5].destination, 1)
                 parseComms(event[5].replyChain, event[5].data, event[5].destination)
             end
@@ -41,7 +49,8 @@ function eventLoop ()
                 -- First chat argument is destination, check if this computer is targeted
                 if args[1] == tostring(os.computerID()) or (os.computerLabel() and args[1] == os.computerLabel()) then
                     table.remove(args, 1)
-                    parseComms({{"chat", (not event[5]) or event[2]}}, args, {})
+                    -- parseComms({{"chat", (not event[5]) or event[2]}}, args, {})
+                    parseComms({{"chat", event[5] and event[2] or nil}}, args, {})
                 end
             end
 
@@ -77,10 +86,14 @@ function parseComms (replyChain, data, destination)
             table.remove(data, 1)  -- Remove destination from data
             sendMessage(replyChain, data, {{"modem", nextComputer}})
 
+        elseif data[1] == "term" then  -- Sending data to a remote terminal, idk why
+            table.remove(data, 1)  -- Remove "term" command
+            sendMessage(replyChain, data, {{"term"}})
+
         elseif data[1] == "info" then  -- Print info about computer
             local info = {id=os.computerID(), label=os.computerLabel(), processes={}}
 
-            if modem then
+            if modem then  -- Only get GPS is modem is attached
                 local position = gps.locate()
                 if position then
                     local pos
@@ -89,9 +102,10 @@ function parseComms (replyChain, data, destination)
                 end
             end
 
+            -- Only get fuel if is turtle
             if turtle then info.fuel = turtle.getFuelLevel() end
 
-            for p = 1,multishell.getCount() do
+            for p = 1,multishell.getCount() do  -- List running programs
                 table.insert(info.processes, multishell.getTitle(p))
             end
 
@@ -105,23 +119,24 @@ end
 
 
 function sendMessage (replyChain, data, destination)
-    if destination[1][1] == "chat" then
+    if destination[1][1] == "chat" then  -- Destination type is chat, send a chat message
         if chat then
             local message = stringifyTable(data)
             local prefix = os.computerLabel() and (os.computerLabel() .. " (" .. tostring(os.computerID() .. ")")) or tostring(os.computerID())
-            if destination[1][2] == true then
+            if not destination[1][2] then  -- Player == nil so request was public, send reply to all in whitelist
                 for _, player in ipairs(chatWhitelist) do
                     chat.sendMessageToPlayer(message, player, prefix)
                 end
-            else
+            else  -- Request was private, send only to requesting player
                 chat.sendMessageToPlayer(message, destination[1][2], prefix)
             end
         else
             io.stderr:write("Cannot send chat message!")
         end
 
-    elseif destination[1][1] == "modem" then
+    elseif destination[1][1] == "modem" then  -- Destination type is modem, send a packet
         if modem then
+            -- Add self to reply chain
             table.insert(replyChain, 1, {"modem", tostring(os.computerID)})
             modem.transmit(useChannel, useChannel, {replyChain=replyChain, data=data, destination=destination})
         else
@@ -129,6 +144,7 @@ function sendMessage (replyChain, data, destination)
         end
 
     elseif destination[1][1] == "term" then
+        -- Destination type is terminal, print the data
         print(stringifyTable(data))
     end
 end

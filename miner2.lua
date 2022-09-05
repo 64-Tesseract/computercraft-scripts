@@ -1,3 +1,10 @@
+-- Simple, local-coordinate-based miner that interfaces with `remman.lua`
+-- Mines a square (starting back-left) determined by the "radius", down "depth" blocks
+-- Also deposits items to a container just above its starting position
+-- Will automatically return back to its start pos if its fuel gets low or it can't mine a block
+-- Will stop the program only at its start pos if it has no fuel or can't deposit its items
+-- Can be stopped & its local position queried via terminal, modem, or chat (see `remman.lua`)
+
 args = {...}
 
 command = nil
@@ -301,13 +308,9 @@ function main ()
     waitForLoop = false
 end
 
-function getInput ()
-    _, replyChain, command = os.pullEvent("comms_receive")
-end
-
 function parseCommands ()
     while true do
-        getInput()
+        _, replyChain, command = os.pullEvent("comms_receive")
         
         if command[1] == "stop" then
             logMsg({status="finishing", reason="command"})
