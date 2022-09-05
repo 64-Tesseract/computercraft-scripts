@@ -1,4 +1,4 @@
-shell.run("wget https://github.com/64-Tesseract/computercraft-scripts/raw/master/packages.lua /bin/packages.lua")
+shell.run("wget https://github.com/64-Tesseract/computercraft-scripts/raw/master/packages.lua /packages.lua")
 
 packages = {
     {"miner2.lua", "https://github.com/64-Tesseract/computercraft-scripts/raw/master/miner2.lua"}
@@ -24,7 +24,7 @@ shell.run("packages upgrade")
 
 if not fs.exists("/startup") then fs.makeDir("/startup") end
 f = io.open("/startup/remman.lua", "w")
-f:write("shell.run(\"bg /bin/remman.lua\")")
+f:write("shell.run(\"bg /remman.lua\")")
 f:flush()
 f:close()
 

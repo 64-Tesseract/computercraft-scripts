@@ -97,9 +97,9 @@ elseif cmd == "upgrade" then
         end
 
         if not specific or download then
-            if fs.exists("/bin/" .. pp[1]) then
+            if fs.exists(pp[1]) then
                 write("Upgrading file \"" .. pp[1] .. "\"... ")
-                fs.delete("/bin/" .. pp[1])
+                fs.delete(pp[1])
             else
                 write("Downloading file \"" .. pp[1] .. "\"... ")
             end
@@ -107,7 +107,7 @@ elseif cmd == "upgrade" then
             req = http.get(pp[2])
             code = req.getResponseCode()
             if code >= 200 and code < 300 then
-                f = io.open("/bin/" .. pp[1], "w")
+                f = io.open(pp[1], "w")
                 f:write(req.readAll())
                 f:close()
                 print("Downloaded successfuly")
