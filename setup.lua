@@ -22,7 +22,8 @@ f:close()
 
 shell.run("packages upgrade")
 
-f = io.open("/startup", "a")
+if not fs.exists("/startup") then fs.makeDir("/startup") end
+f = io.open("/startup/remman.lua", "w")
 f:write("shell.run(\"bg /bin/remman.lua\")")
 f:flush()
 f:close()
