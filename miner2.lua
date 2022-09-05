@@ -21,7 +21,7 @@ useless = {
     "minecraft:gravel",
     "minecraft:netherrack",
     "minecraft:tuff",
-    "minecraft:cobbled_deepslate"
+    "minecraft:cobbled_deepslate",
     "allure:root_item"
 }
 
