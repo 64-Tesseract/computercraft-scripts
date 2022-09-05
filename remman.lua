@@ -18,6 +18,8 @@ local useChannel = 256
 local chatWhitelist = {"64_Tesseract", "IEATDIRT52"}
 
 
+args = {...}
+
 local modem = peripheral.find("modem")
 local chat = peripheral.find("chatBox")
 
@@ -174,5 +176,5 @@ function contains (table, value)
 end
 
 
-multishell.setTitle(multishell.getCurrent(), "RemCommsMan")
+multishell.setTitle(multishell.getCurrent(), "RemMan 1.0")
 parallel.waitForAny(eventLoop, termInput)

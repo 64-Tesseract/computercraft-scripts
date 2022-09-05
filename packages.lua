@@ -4,18 +4,19 @@
 args = {...}
 packages = {}
 
-if fs.exists(".packages") then
-    for line in io.lines(".packages") do
-        local pkg = {}
-        for text in string.gmatch(line, "[^\t]+") do table.insert(pkg, text) end
+if fs.exists("/.packages") then
+    for line in io.lines("/.packages") do
+        pkg = {}
+        for text in string.gmatch(line, "[^%s]+") do table.insert(pkg, text) end
+        if #pkg ~= 0 then table.insert(packages, pkg) end
     end
 end
 
 
 function savePackages ()
-    f = io.open(".packages", "w")
+    f = io.open("/.packages", "w")
     for _, pp in pairs(packages) do
-        f:write(pp[1] .. "\t" .. pp[2] .. "\n")
+        f:write(pp[1] .. " " .. pp[2] .. "\n")
     end
 
     f:flush()
@@ -27,20 +28,20 @@ cmd = args[1]
 table.remove(args, 1)
 
 if cmd == "add" then
-    if table.maxn(args) ~= 0 then
+    if #args ~= 0 then
         for _, url in pairs(args) do
-            local exists = false
+            exists = false
 
             for _, pp in pairs(packages) do
                 if pp[2] == url then
-                    io.stderr:writeLine("Package \"" .. pp[1] .. "\" is already installed")
+                    io.stderr:write("Package \"" .. pp[1] .. "\" is already installed\n")
                     exists = true
                     break
                 end
             end
 
             if not exists then
-                local name = string.match(url, "[^/]+.lua$")
+                name = string.match(url, "[^/]+.lua$")
                 print("Adding package \"" .. name .. "\"")
                 table.insert(packages, {name, url})
             end
@@ -51,9 +52,9 @@ if cmd == "add" then
     end
 
 elseif cmd == "del" then
-    if table.maxn(args) ~= 0 then
+    if #args ~= 0 then
         for _, name in pairs(args) do
-            local exists = false
+            exists = false
 
             for i, pp in pairs(packages) do
                 if pp[1] == name then
@@ -65,7 +66,7 @@ elseif cmd == "del" then
             end
 
             if not exists then
-                io.stderr:writeLine("Package \"" .. name .. "\" is not installed")
+                io.stderr:write("Package \"" .. name .. "\" is not installed\n")
             end
         end
 
@@ -74,16 +75,17 @@ elseif cmd == "del" then
     end
 
 elseif cmd == "list" then
+    print("Packages:")
     for _, pp in pairs(packages) do
         print(pp[1])
     end
     return
 
 elseif cmd == "upgrade" then
-    local specific = table.maxn(args) > 0
+    specific = #args > 0
 
     for _, pp in pairs(packages) do
-        local download = false
+        download = false
 
         if specific then
             for _, name in pairs(args) do
@@ -95,21 +97,22 @@ elseif cmd == "upgrade" then
         end
 
         if not specific or download then
-            if fs.exists(pp[1]) then
+            if fs.exists("/bin/" .. pp[1]) then
                 write("Upgrading file \"" .. pp[1] .. "\"... ")
-                fs.delete(pp[1])
+                fs.delete("/bin/" .. pp[1])
             else
                 write("Downloading file \"" .. pp[1] .. "\"... ")
             end
 
-            local req = http.get(pp[2])
-            if req[1] then
-                f = io.open(pp[1], "w")
+            req = http.get(pp[2])
+            code = req.getResponseCode()
+            if code >= 200 and code < 300 then
+                f = io.open("/bin/" .. pp[1], "w")
                 f:write(req.readAll())
                 f:close()
                 print("Downloaded successfuly")
             else
-                io.stderr:writeLine(req[2])
+                io.stderr:write("Got error code " .. tostring(code) .. "\n")
             end
 
             req:close()
