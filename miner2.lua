@@ -9,7 +9,7 @@ args = {...}
 
 command = nil
 replyChain = nil
-chatBroadcast = {{"modem", "2"}, {"chat", true}}
+chatBroadcast = {{"chat"}}
 
 useless = {
     "minecraft:stone",
