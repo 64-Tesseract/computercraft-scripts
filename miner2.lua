@@ -13,6 +13,8 @@ useless = {
     "minecraft:dirt",
     "minecraft:gravel",
     "minecraft:netherrack",
+    "minecraft:tuff",
+    "minecraft:cobbled_deepslate"
     "allure:root_item"
 }
 
@@ -37,7 +39,7 @@ end
 
 function move ()
     if willMoveOOR() then
-        logMsg({status="out of range"})
+        logMsg({status="error", reason="moving out of range"})
         return false
     end
     
@@ -46,7 +48,7 @@ function move ()
         return true
     end
     
-    logMsg({status="cannot move"})
+    logMsg({status="error", reason="cannot move"})
     return false
 end
 
@@ -224,7 +226,7 @@ function main ()
             if block and not tableContains(useless, infront.name) then
                 if not hasSpace() then
                     if not dropUseless() then
-                        logMsg({status="returning to offload"})
+                        logMsg({status="returning", reason="offloading"})
                         break
                     end
                 end
@@ -232,7 +234,7 @@ function main ()
             
             if turtle.getFuelLevel() <= depth + radius * 2 then
                 if not refuelAny() then
-                    logMsg({status="low on fuel"})
+                    logMsg({status="finishing", reason="low fuel"})
                     running = false
                     break
                 end
@@ -240,7 +242,7 @@ function main ()
             
             turtle.select(1)
             if turtle.detect() and not turtle.dig() then
-                logMsg({status="cannot break block"})
+                logMsg({status="finishing", reason="cannot break"})
                 running = false
                 break
             end
@@ -261,7 +263,7 @@ function main ()
                 turn(turnDir)
                 
                 if depth + 1 == targetDepth then
-                    logMsg({status="reached bottom"})
+                    logMsg({status="finishing", reason="done"})
                     running = false
                     saveSession()
                     break
@@ -289,34 +291,26 @@ function main ()
         moveTo({1, 1})
         turnTo(1)
         if not deposit() then
-            logMsg({status="cannot offload"})
+            logMsg({status="error", reason="cannot offload"})
             running = false
             break
         end
     end
     
-    logMsg({status="finished", pos={x=pos[1], z=pos[2]}})
+    logMsg({status="finished"})
     waitForLoop = false
 end
 
-function getLocalInput ()
-    local text = io.read()
-    command = {}
-    for arg in string.gmatch(text, "[^%s]+") do
-        table.insert(command, arg)
-    end
-end
-
-function getRemoteInput ()
+function getInput ()
     _, replyChain, command = os.pullEvent("comms_receive")
 end
 
 function parseCommands ()
     while true do
-        parallel.waitForAny(getLocalInput, getRemoteInput)
+        getInput()
         
         if command[1] == "stop" then
-            logMsg({status="stopping"})
+            logMsg({status="finishing", reason="command"})
             -- saveSession()
             running = false
         elseif command[1] == "pos" then

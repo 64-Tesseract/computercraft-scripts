@@ -52,6 +52,19 @@ function eventLoop ()
 end
 
 
+function termInput ()
+    while true do
+        local text = io.read()
+        local args = {}
+        for arg in string.gmatch(text, "[^%s]+") do
+            table.insert(args, arg)
+        end
+
+        parseComms({{"term"}}, args, {})
+    end
+end
+
+
 function parseComms (replyChain, data, destination)
     if table.maxn(destination) ~= 0 then  -- There are more destinations to forward to
         sendMessage(replyChain, data, destination)
@@ -89,8 +102,6 @@ end
 
 
 function sendMessage (replyChain, data, destination)
-    print("Sending message")
-    print("Destination: " .. stringifyTable(destination))
     if destination[1][1] == "chat" then
         if chat then
             local message = stringifyTable(data)
@@ -113,6 +124,9 @@ function sendMessage (replyChain, data, destination)
         else
             io.stderr:write("Cannot send modem message!")
         end
+
+    elseif destination[1][1] == "term" then
+        print(stringifyTable(data))
     end
 end
 
@@ -142,4 +156,4 @@ end
 
 
 multishell.setTitle(multishell.getCurrent(), "RemCommsMan")
-eventLoop()
+parallel.waitForAny(eventLoop, termInput)
