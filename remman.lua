@@ -61,7 +61,7 @@ function termInput ()
         end
 
         parseComms({{"term"}}, args, {})
-        print("\n> ")
+        print()
     end
 end
 
