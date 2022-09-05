@@ -139,7 +139,7 @@ function sendMessage (replyChain, data, destination)
     elseif destination[1][1] == "modem" then  -- Destination type is modem, send a packet
         if modem then
             -- Add self to reply chain
-            table.insert(replyChain, 1, {"modem", tostring(os.computerID)})
+            table.insert(replyChain, 1, {"modem", tostring(os.computerID())})
             modem.transmit(useChannel, useChannel, {replyChain=replyChain, data=data, destination=destination})
         else
             io.stderr:write("Cannot send modem message!")
