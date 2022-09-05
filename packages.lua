@@ -15,7 +15,7 @@ end
 function savePackages ()
     f = io.open(".packages", "w")
     for _, pp in pairs(packages) do
-        f:writeLine(pp[1] .. "\t" .. pp[2])
+        f:write(pp[1] .. "\t" .. pp[2] .. "\n")
     end
 
     f:flush()
@@ -24,7 +24,7 @@ end
 
 
 cmd = args[1]
-table.remove(args[1])
+table.remove(args, 1)
 
 if cmd == "add" then
     if table.maxn(args) ~= 0 then
@@ -40,7 +40,7 @@ if cmd == "add" then
             end
 
             if not exists then
-                local name = string.match(url, "[^/]+(?:.lua$)")
+                local name = string.match(url, "[^/]+.lua$")
                 print("Adding package \"" .. name .. "\"")
                 table.insert(packages, {name, url})
             end
@@ -77,6 +77,7 @@ elseif cmd == "list" then
     for _, pp in pairs(packages) do
         print(pp[1])
     end
+    return
 
 elseif cmd == "upgrade" then
     local specific = table.maxn(args) > 0
@@ -87,23 +88,23 @@ elseif cmd == "upgrade" then
         if specific then
             for _, name in pairs(args) do
                 if pp[1] == name then
-                    download == true
+                    download = true
                     break
                 end
             end
         end
 
         if not specific or download then
-            if fs.exists(pp[1] .. ".lua") then
+            if fs.exists(pp[1]) then
                 write("Upgrading file \"" .. pp[1] .. "\"... ")
-                fs.delete(pp[1] .. ".lua")
+                fs.delete(pp[1])
             else
                 write("Downloading file \"" .. pp[1] .. "\"... ")
             end
 
             local req = http.get(pp[2])
             if req[1] then
-                f = io.open(pp[1] .. ".lua", "w")
+                f = io.open(pp[1], "w")
                 f:write(req.readAll())
                 f:close()
                 print("Downloaded successfuly")
