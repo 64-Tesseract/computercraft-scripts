@@ -61,6 +61,7 @@ function termInput ()
         end
 
         parseComms({{"term"}}, args, {})
+        print("\n> ")
     end
 end
 
@@ -79,11 +80,13 @@ function parseComms (replyChain, data, destination)
         elseif data[1] == "info" then  -- Print info about computer
             local info = {id=os.computerID(), label=os.computerLabel(), processes={}}
 
-            local position = gps.locate()
-            if position then
-                local pos
-                pos.x, pos.y, pos.z = position
-                info.position = pos
+            if modem then
+                local position = gps.locate()
+                if position then
+                    local pos
+                    pos.x, pos.y, pos.z = position
+                    info.position = pos
+                end
             end
 
             if turtle then info.fuel = turtle.getFuelLevel() end
