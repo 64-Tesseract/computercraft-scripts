@@ -87,7 +87,7 @@ function parseComms (replyChain, data, destination)
             table.remove(data, 1)  -- Remove destination from data
             sendMessage(replyChain, data, {{"modem", nextComputer}})
 
-        elseif data[1] == "term" then  -- Sending data to a remote terminal, idk why
+        elseif data[1] == "term" then  -- Sending data to a terminal
             table.remove(data, 1)  -- Remove "term" command
             sendMessage(replyChain, data, {{"term"}})
 
@@ -98,7 +98,7 @@ function parseComms (replyChain, data, destination)
                 local position = gps.locate()
                 if position then
                     local pos
-                    pos.x, pos.y, pos.z = position
+                    pos.x, pos.y, pos.z = table.unpack(position)
                     info.position = pos
                 end
             end

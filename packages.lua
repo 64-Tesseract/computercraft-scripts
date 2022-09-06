@@ -4,6 +4,17 @@
 args = {...}
 packages = {}
 
+
+if not fs.exists("/autorun") then fs.makeDir("/autorun") end
+if not fs.exists("/autorun/run-packages.lua") then
+    print("First run, setting up autorun")
+    f = io.open("/autorun/run-packages.lua", "w")
+    f:write("shell.run(\"packages.lua runauto\")")
+    f:flush()
+    f:close()
+end
+
+
 if fs.exists("/.packages") then
     for line in io.lines("/.packages") do
         pkg = {}
@@ -16,7 +27,7 @@ end
 function savePackages ()
     f = io.open("/.packages", "w")
     for _, pp in pairs(packages) do
-        f:write(pp[1] .. " " .. pp[2] .. "\n")
+        f:write(table.concat(pp, " ") .. "\n")
     end
 
     f:flush()
@@ -75,14 +86,16 @@ elseif cmd == "del" then
     end
 
 elseif cmd == "list" then
-    print("Packages:")
+    print("Packages (" .. #packages .. "):")
     for _, pp in pairs(packages) do
-        print(pp[1])
+        if pp[3] == "autorun" then star = "*" else star = " " end
+        print(star .. pp[1])
     end
+
     return
 
 elseif cmd == "upgrade" then
-    specific = #args > 0
+    specific = #args ~= 0
 
     for _, pp in pairs(packages) do
         download = false
@@ -120,6 +133,50 @@ elseif cmd == "upgrade" then
     end
 
     return
+
+elseif cmd == "autorun" or cmd == "autorun" then
+    if #args ~= 0 then
+        setAutorun = cmd == "autorun"
+
+        for _, name in pairs(args) do
+            exists = false
+
+            for _, pp in pairs(packages) do
+                if pp[1] == name then
+                    if setAutorun then
+                        if pp[3] ~= "autorun" then
+                            table.insert(pp, "autorun")
+                        else
+                            print("Package \"" .. name .. "\" is already set to autorun")
+                        end
+                    else
+                        if pp[3] == "autorun" then
+                            table.remove(pp, 3)
+                        else
+                            print("Package \"" .. name .. "\" is not set to autorun")
+                        end
+                    end
+
+                    exists = true
+                    break
+                end
+            end
+
+            if not exists then
+                io.stderr:write("Package \"" .. name .. "\" is not installed\n")
+            end
+        end
+
+        savePackages()
+        return
+    end
+
+elseif cmd == "runauto" then
+    for _, pp in pairs(packages) do
+        if pp[3] == "autorun" then
+            shell.run("bg", pp[1])
+        end
+    end
 end
 
 
