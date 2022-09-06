@@ -9,7 +9,7 @@ if not fs.exists("/autorun") then fs.makeDir("/autorun") end
 if not fs.exists("/autorun/run-packages.lua") then
     print("First run, setting up autorun")
     f = io.open("/autorun/run-packages.lua", "w")
-    f:write("shell.run(\"packages.lua runauto\")")
+    f:write("shell.run(\"/packages.lua runauto\")")
     f:flush()
     f:close()
 end
@@ -70,6 +70,7 @@ elseif cmd == "del" then
             for i, pp in pairs(packages) do
                 if pp[1] == name then
                     print("Removing package \"" .. name .. "\"")
+                    fs.delete("/" .. name)
                     exists = true
                     packages[i] = nil
                     break
@@ -110,9 +111,9 @@ elseif cmd == "upgrade" then
         end
 
         if not specific or download then
-            if fs.exists(pp[1]) then
+            if fs.exists("/" .. pp[1]) then
                 write("Upgrading file \"" .. pp[1] .. "\"... ")
-                fs.delete(pp[1])
+                fs.delete("/" .. pp[1])
             else
                 write("Downloading file \"" .. pp[1] .. "\"... ")
             end
@@ -120,7 +121,7 @@ elseif cmd == "upgrade" then
             req = http.get(pp[2])
             code = req.getResponseCode()
             if code >= 200 and code < 300 then
-                f = io.open(pp[1], "w")
+                f = io.open("/" .. pp[1], "w")
                 f:write(req.readAll())
                 f:close()
                 print("Downloaded successfuly")
@@ -134,7 +135,7 @@ elseif cmd == "upgrade" then
 
     return
 
-elseif cmd == "autorun" or cmd == "autorun" then
+elseif cmd == "autorun" or cmd == "unautorun" then
     if #args ~= 0 then
         setAutorun = cmd == "autorun"
 
@@ -174,9 +175,12 @@ elseif cmd == "autorun" or cmd == "autorun" then
 elseif cmd == "runauto" then
     for _, pp in pairs(packages) do
         if pp[3] == "autorun" then
-            shell.run("bg", pp[1])
+            print("Autorunning " .. pp[1])
+            shell.run("bg", "/" .. pp[1])
         end
     end
+
+    return
 end
 
 
@@ -185,3 +189,5 @@ print("    add <url> [...]")
 print("    del <name> [...]")
 print("    list")
 print("    upgrade [name] [...]")
+print("    autorun [name] [...]")
+print("    unautorun [name] [...]")
