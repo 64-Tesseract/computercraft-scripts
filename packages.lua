@@ -5,10 +5,10 @@ args = {...}
 packages = {}
 
 
-if not fs.exists("/autorun") then fs.makeDir("/autorun") end
-if not fs.exists("/autorun/run-packages.lua") then
+if not fs.exists("/startup") then fs.makeDir("/startup") end
+if not fs.exists("/startup/run-packages.lua") then
     print("First run, setting up autorun")
-    f = io.open("/autorun/run-packages.lua", "w")
+    f = io.open("/startup/run-packages.lua", "w")
     f:write("shell.run(\"/packages.lua runauto\")")
     f:flush()
     f:close()
