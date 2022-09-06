@@ -9,7 +9,7 @@ if not fs.exists("/startup") then fs.makeDir("/startup") end
 if not fs.exists("/startup/run-packages.lua") then
     print("First run, setting up autorun")
     f = io.open("/startup/run-packages.lua", "w")
-    f:write("shell.run(\"/packages.lua runauto\")")
+    f:write("shell.openTab(\"/packages.lua runauto\")")
     f:flush()
     f:close()
 end
@@ -176,7 +176,7 @@ elseif cmd == "runauto" then
     for _, pp in pairs(packages) do
         if pp[3] == "autorun" then
             print("Autorunning " .. pp[1])
-            shell.run("bg", "/" .. pp[1])
+            shell.openTab("/" .. pp[1])
         end
     end
 
