@@ -133,7 +133,7 @@ function sendMessage (replyChain, data, destination)
                 chat.sendMessageToPlayer(message, destination[1][2], prefix)
             end
         else
-            io.stderr:write("Cannot send chat message!")
+            io.stderr:write("Cannot send chat message!\n")
         end
 
     elseif destination[1][1] == "modem" then  -- Destination type is modem, send a packet
@@ -142,7 +142,7 @@ function sendMessage (replyChain, data, destination)
             table.insert(replyChain, 1, {"modem", tostring(os.computerID())})
             modem.transmit(useChannel, useChannel, {replyChain=replyChain, data=data, destination=destination})
         else
-            io.stderr:write("Cannot send modem message!")
+            io.stderr:write("Cannot send modem message!\n")
         end
 
     elseif destination[1][1] == "term" then
