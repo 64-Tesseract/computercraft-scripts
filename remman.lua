@@ -23,7 +23,7 @@ args = {...}
 local modem = peripheral.find("modem")
 local chat = peripheral.find("chatBox")
 
-if not modem and not chat then error("No modems attached") end
+if not modem and not chat then io.stderr:write("No modems attached!\n") end
 
 if modem then modem.open(useChannel) end
 
@@ -72,7 +72,6 @@ function termInput ()
         end
 
         parseComms({{"term"}}, args, {})
-        print()
     end
 end
 
@@ -148,6 +147,7 @@ function sendMessage (replyChain, data, destination)
     elseif destination[1][1] == "term" then
         -- Destination type is terminal, print the data
         print(stringifyTable(data))
+        print()
     end
 end
 

@@ -1,7 +1,8 @@
 shell.run("wget https://github.com/64-Tesseract/computercraft-scripts/raw/master/packages.lua /packages.lua")
 
 packages = {
-    {"miner2.lua", "https://github.com/64-Tesseract/computercraft-scripts/raw/master/miner2.lua"}
+    {"miner2.lua", "https://github.com/64-Tesseract/computercraft-scripts/raw/master/miner2.lua"},
+    {"redman.lua", "https://github.com/64-Tesseract/computercraft-scripts/raw/master/redman.lua"}
 }
 
 
