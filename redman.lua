@@ -41,14 +41,10 @@ sides = {top=-1, bottom=-1, left=-1, right=-1, front=-1, back=-1}
 function redstoneLoop ()
     while true do
         for _, ruleSet in pairs(rules) do
-            inputs = ruleSet.inputs
-            outputs = ruleSet.outputs
-            enabled = ruleSet.enabled
-
-            if active then
-                for _, sideIn in pairs(inputs) do
+            if ruleSet.enabled then
+                for _, sideIn in pairs(ruleSet.inputs) do
                     if redstone.getInput(sideIn) and sides[sideIn] == -3 then
-                        for _, sideOut in pairs(outputs) do
+                        for _, sideOut in pairs(ruleSet.outputs) do
                             sides[sideOut] = math.max(sides[sideOut], 0)
                         end
                         break
@@ -72,8 +68,11 @@ function remoteLoop ()
         _, replyChain, command = os.pullEvent("comms_receive")
         name = command[2] or "main"
 
-        if command[1] == "redstone" then
+        if command[1] == "rules" then
             os.queueEvent("comms_send", rules, replyChain)
+
+        elseif command[1] == "sides" then
+            os.queueEvent("comms_send", sides, replyChain)
 
         elseif isRule(name, replyChain) then
             if command[1] == "pulse" then
@@ -110,5 +109,5 @@ function isRule (name, replyChain)
 end
 
 
-multishell.setTitle(multishell.getCurrent(), "RedMan 0.9")
+multishell.setTitle(multishell.getCurrent(), "RedMan 1.0")
 parallel.waitForAny(redstoneLoop, remoteLoop)
