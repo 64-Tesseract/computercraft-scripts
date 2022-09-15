@@ -15,7 +15,7 @@
 
 -- Config
 local useChannel = 256
-local chatWhitelist = {"64_Tesseract", "IEATDIRT52"}
+local chatWhitelist = {"64_Tesseract", "IEATDIRT52", "Skyhawk_0v0_"}
 
 
 local modem = peripheral.find("modem")
