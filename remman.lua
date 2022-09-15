@@ -18,8 +18,6 @@ local useChannel = 256
 local chatWhitelist = {"64_Tesseract", "IEATDIRT52"}
 
 
-args = {...}
-
 local modem = peripheral.find("modem")
 local chat = peripheral.find("chatBox")
 
@@ -95,9 +93,9 @@ function parseComms (replyChain, data, destination)
             local info = {id=os.computerID(), label=os.computerLabel(), processes={}}
 
             if modem then  -- Only get GPS is modem is attached
-                local position = gps.locate()
-                if position then
-                    local pos
+                local position = {gps.locate()}
+                if position[1] then
+                    local pos = {}
                     pos.x, pos.y, pos.z = table.unpack(position)
                     info.position = pos
                 end
@@ -122,7 +120,7 @@ end
 function sendMessage (replyChain, data, destination)
     if destination[1][1] == "chat" then  -- Destination type is chat, send a chat message
         if chat then
-            local message = stringifyTable(data)
+            local message = textutils.serialize(data)
             local prefix = os.computerLabel() and (os.computerLabel() .. " (" .. tostring(os.computerID() .. ")")) or tostring(os.computerID())
             if not destination[1][2] then  -- Player == nil so request was public, send reply to all in whitelist
                 for _, player in ipairs(chatWhitelist) do
@@ -146,24 +144,9 @@ function sendMessage (replyChain, data, destination)
 
     elseif destination[1][1] == "term" then
         -- Destination type is terminal, print the data
-        print(stringifyTable(data))
+        print(textutils.serialize(data))
         print()
     end
-end
-
-
-function stringifyTable (table, tab)
-    if tab == nil then tab = 0 end
-    local message = ""
-
-    for key, val in pairs(table) do
-        message = message .. "\n| "
-        for t = 1,tab do message = message .. "    " end
-
-        message = message .. key .. " =" .. (type(val) == "table" and stringifyTable(val, tab + 1) or " " .. tostring(val))
-    end
-
-    return message
 end
 
 
@@ -176,5 +159,5 @@ function contains (table, value)
 end
 
 
-multishell.setTitle(multishell.getCurrent(), "RemMan 1.0")
+multishell.setTitle(multishell.getCurrent(), "RemMan 1.1")
 parallel.waitForAny(eventLoop, termInput)

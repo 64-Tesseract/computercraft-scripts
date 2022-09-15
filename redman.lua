@@ -1,5 +1,13 @@
-sideKey = {"top", "bottom", "left", "right", "front", "back"}
+-- Redstone route manager, outputs based on configurable rules to sides based on inputs
+-- Reads from `.redman` in format:
+--     NAME INPUTS OUTPUTS
+-- NAME is a customizable ID, "main" is used in processing if no args provided
+-- INPUTS & OUTPUTS are numbers 1-6, all input sides must be powered for outputs to turn on
+-- For example, left & right need to be on for front & back to be enabled:
+--     main 34 56
+-- Each rule can be remotely pulsed (with `remman.lua`), & locked/unlocked which disallows it to be output
 
+sideKey = {"top", "bottom", "left", "right", "front", "back"}
 rules = {}
 
 
@@ -42,12 +50,18 @@ function redstoneLoop ()
     while true do
         for _, ruleSet in pairs(rules) do
             if ruleSet.enabled then
+                active = true
+
                 for _, sideIn in pairs(ruleSet.inputs) do
-                    if redstone.getInput(sideIn) and sides[sideIn] == -3 then
-                        for _, sideOut in pairs(ruleSet.outputs) do
-                            sides[sideOut] = math.max(sides[sideOut], 0)
-                        end
+                    if not redstone.getInput(sideIn) or sides[sideIn] ~= -3 then
+                        active = false
                         break
+                    end
+                end
+
+                if active then
+                    for _, sideOut in pairs(ruleSet.outputs) do
+                        sides[sideOut] = math.max(sides[sideOut], 0)
                     end
                 end
             end
@@ -109,5 +123,5 @@ function isRule (name, replyChain)
 end
 
 
-multishell.setTitle(multishell.getCurrent(), "RedMan 1.0")
+multishell.setTitle(multishell.getCurrent(), "RedMan 1.1")
 parallel.waitForAny(redstoneLoop, remoteLoop)
