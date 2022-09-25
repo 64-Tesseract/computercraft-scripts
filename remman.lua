@@ -15,7 +15,7 @@
 
 -- Config
 local useChannel = 256
-local chatWhitelist = {"64_Tesseract", "IEATDIRT52", "Skyhawk_0v0_"}
+-- local chatWhitelist = {"64_Tesseract", "IEATDIRT52", "Skyhawk_0v0_"}
 
 
 local modem = peripheral.find("modem")
@@ -123,9 +123,9 @@ function sendMessage (replyChain, data, destination)
             local message = textutils.serialize(data)
             local prefix = os.computerLabel() and (os.computerLabel() .. " (" .. tostring(os.computerID() .. ")")) or tostring(os.computerID())
             if not destination[1][2] then  -- Player == nil so request was public, send reply to all in whitelist
-                for _, player in ipairs(chatWhitelist) do
-                    chat.sendMessageToPlayer(message, player, prefix)
-                end
+                -- for _, player in ipairs(chatWhitelist) do
+                chat.sendMessage(message, prefix)
+                -- end
             else  -- Request was private, send only to requesting player
                 chat.sendMessageToPlayer(message, destination[1][2], prefix)
             end
