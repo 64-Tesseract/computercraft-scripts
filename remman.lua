@@ -39,20 +39,20 @@ function eventLoop ()
             end
 
         elseif eventType == "chat" then
-            if contains(chatWhitelist, event[2]) then
-                -- Split chat arguments by spaces
-                local args = {}
-                for arg in string.gmatch(event[3], "[^%s]+") do
-                    table.insert(args, arg)
-                end
-
-                -- First chat argument is destination, check if this computer is targeted
-                if args[1] == tostring(os.computerID()) or (os.computerLabel() and args[1] == os.computerLabel()) then
-                    table.remove(args, 1)
-                    -- parseComms({{"chat", (not event[5]) or event[2]}}, args, {})
-                    parseComms({{"chat", event[5] and event[2] or nil}}, args, {})
-                end
+            -- if contains(chatWhitelist, event[2]) then
+            -- Split chat arguments by spaces
+            local args = {}
+            for arg in string.gmatch(event[3], "[^%s]+") do
+                table.insert(args, arg)
             end
+
+            -- First chat argument is destination, check if this computer is targeted
+            if args[1] == tostring(os.computerID()) or (os.computerLabel() and args[1] == os.computerLabel()) then
+                table.remove(args, 1)
+                -- parseComms({{"chat", (not event[5]) or event[2]}}, args, {})
+                parseComms({{"chat", event[5] and event[2] or nil}}, args, {})
+            end
+            -- end
 
         elseif eventType == "comms_send" then
             sendMessage({}, event[2], event[3])
