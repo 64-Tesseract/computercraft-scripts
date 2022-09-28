@@ -33,7 +33,7 @@ function eventLoop ()
 
         if eventType == "modem_message" then
             -- Ensure correct format is sent, otherwise arbitrary communication could crash the script
-            if event[5].destination and event[5].replyChain and event[5].data then
+            if event[5].destination and event[5].replyChain and event[5].data and event[3] == useChannel then
                 -- All modems receive the modem message which is the filtered manually, as destination may be its label
                 if event[5].destination[1][2] == tostring(os.computerID()) or (os.computerLabel() and event[5].destination[1][2] == os.computerLabel()) then
                     table.remove(event[5].destination, 1)
