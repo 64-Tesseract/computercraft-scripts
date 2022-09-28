@@ -32,10 +32,13 @@ function eventLoop ()
         local eventType = event[1]
 
         if eventType == "modem_message" then
-            -- All modems receive the modem message which is the filtered manually, as destination may be its label
-            if event[5].destination[1][2] == tostring(os.computerID()) or (os.computerLabel() and event[5].destination[1][2] == os.computerLabel()) then
-                table.remove(event[5].destination, 1)
-                parseComms(event[5].replyChain, event[5].data, event[5].destination)
+            -- Ensure correct format is sent, otherwise arbitrary communication could crash the script
+            if event[5].destination and event[5].replyChain and event[5].data then
+                -- All modems receive the modem message which is the filtered manually, as destination may be its label
+                if event[5].destination[1][2] == tostring(os.computerID()) or (os.computerLabel() and event[5].destination[1][2] == os.computerLabel()) then
+                    table.remove(event[5].destination, 1)
+                    parseComms(event[5].replyChain, event[5].data, event[5].destination)
+                end
             end
 
         elseif eventType == "chat" then
@@ -159,5 +162,5 @@ function contains (table, value)
 end
 
 
-multishell.setTitle(multishell.getCurrent(), "RemMan 1.1")
+multishell.setTitle(multishell.getCurrent(), "RemMan 1.2")
 parallel.waitForAny(eventLoop, termInput)
