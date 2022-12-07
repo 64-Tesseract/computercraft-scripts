@@ -1,5 +1,5 @@
 -- Simple, local-coordinate-based miner that interfaces with `remman.lua`
--- Mines a square (starting back-left) determined by the "radius", down "depth" blocks
+-- Mines a square (starting back-left) determined by the "diameter", down "depth" blocks
 -- Also deposits items to a container just above its starting position
 -- Will automatically return back to its start pos if its fuel gets low or it can't mine a block
 -- Will stop the program only at its start pos if it has no fuel or can't deposit its items
@@ -10,6 +10,8 @@ args = {...}
 command = nil
 replyChain = nil
 chatBroadcast = {{"modem", "minercontroller"}, {"chat"}}
+
+canRefuel = true
 
 useless = {
     "minecraft:stone",
@@ -62,7 +64,7 @@ end
 function willMoveOOR ()
     movePos = getMovePos()
     
-    return movePos[1] < 1 or movePos[1] > radius or movePos[2] < 1 or movePos[2] > radius
+    return movePos[1] < 1 or movePos[1] > diameter or movePos[2] < 1 or movePos[2] > diameter
 end
 
 function getMovePos (lr)
@@ -123,7 +125,7 @@ function refuelAny ()
     for slot = 1, 16 do
         turtle.select(slot)
         count = turtle.getItemCount()
-        if count > 1 and turtle.refuel(count - 1) then
+        if count > 1 and turtle.refuel(count / 2) then
             return true
         end
     end
@@ -142,20 +144,47 @@ function hasSpace ()
 end
 
 function deposit ()
-    keepItems = {["minecraft:coal"] = 1, ["minecraft:charcoal"] = 1}
+    keepItems = {["minecraft:coal"] = true, ["minecraft:charcoal"] = true, ["minecraft:blaze_rod"] = true}
     
     for slot = 1, 16 do
         turtle.select(slot)
         item = turtle.getItemDetail()
         if item ~= nil then
-            if keepItems[item.name] == 1 then
-                keepItems[item.name] = 0
+            if keepItems[item.name] then
+                keepItems[item.name] = false
             elseif not turtle.dropUp() then
                 return false
             end
         end
     end
+
     return true
+end
+
+function withdrawFuel ()
+    fuel = "minecraft:blaze_rod"
+    chest = peripheral.wrap("top")
+
+    if chest then
+        fuelItem = chest.getItemDetail(1)
+        if fuelItem and fuelItem.name == fuel then
+            toTake = 64
+
+            for slot = 1, 16 do
+                turtle.select(slot)
+                item = turtle.getItemDetail()
+                if item and item.name == fuel then
+                    toTake = toTake - item.count
+                    break
+                end
+            end
+
+            turtle.suckUp(math.min(fuelItem.count, toTake))
+            return true
+        end
+    end
+
+    return false
 end
 
 function dist (a, b)
@@ -194,7 +223,7 @@ end
 
 function saveSession ()
     f = io.open("miner.session", "w")
-    f.write(f, radius .. " " .. targetDepth .. " " .. depth)
+    f.write(f, diameter .. " " .. targetDepth .. " " .. depth)
     f.close(f)
 end
 
@@ -210,7 +239,7 @@ function loadSession ()
     end
     f.close(f)
     
-    radius = tonumber(sessionargs[1]) or error("Corrupted session data (radius)")
+    diameter = tonumber(sessionargs[1]) or error("Corrupted session data (diameter)")
     targetDepth = tonumber(sessionargs[2]) or error("Corrupted session data (target depth)")
     depth = tonumber(sessionargs[3]) or error("Corrupted session data (starting depth)")
 end
@@ -239,10 +268,14 @@ function main ()
                 end
             end
             
-            if turtle.getFuelLevel() <= depth + radius * 2 then
+            if turtle.getFuelLevel() <= depth + diameter * 2 then
                 if not refuelAny() then
-                    logMsg({status="finishing", reason="low fuel"})
-                    running = false
+                    if canRefuel then
+                        logMsg({status="returning", reason="low fuel"})
+                    else
+                        logMsg({status="finishing", reason="low fuel"})
+                        running = false
+                    end
                     break
                 end
             end
@@ -256,7 +289,7 @@ function main ()
             move()
             
             turnDir = 0
-            if pos[2] == radius then
+            if pos[2] == diameter then
                 turnDir = -1
             elseif pos[2] == 1 then
                 turnDir = 1
@@ -266,7 +299,7 @@ function main ()
             turn(turnDir)
             
             oor = getMovePos()
-            if oor[1] > radius or oor[1] < 1 then
+            if oor[1] > diameter or oor[1] < 1 then
                 turn(turnDir)
                 
                 if depth + 1 == targetDepth then
@@ -297,10 +330,16 @@ function main ()
         dropUseless()
         moveTo({1, 1})
         turnTo(1)
+
+        refuelAny()
+        if canRefuel and not withdrawFuel() then
+            logMsg({status="error", reason="cannot withdraw fuel"})
+            running = false
+        end
+
         if not deposit() then
             logMsg({status="error", reason="cannot offload"})
             running = false
-            break
         end
     end
     
@@ -334,16 +373,16 @@ function logMsg (msg)
 end
 
 if args[1] ~= "resume" then
-    radius = tonumber(args[1])
+    diameter = tonumber(args[1])
     targetDepth = tonumber(args[2])
     depth = tonumber(args[3]) or 0
 else
     loadSession()
 end
 
-if radius == nil or targetDepth == nil or depth == nil then
-    error("miner.lua <radius> <target depth> [starting depth]\n      ... resume")
+if diameter == nil or targetDepth == nil or depth == nil then
+    error("miner.lua <diameter> <target depth> [starting depth]\n      ... resume")
 end
 
-logMsg({status="starting", radius=radius, targetDepth=targetDepth, startingDepth=depth})
+logMsg({status="starting", diameter=diameter, targetDepth=targetDepth, startingDepth=depth})
 parallel.waitForAny(main, parseCommands)
