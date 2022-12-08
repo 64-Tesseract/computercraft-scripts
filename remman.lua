@@ -14,14 +14,15 @@
 -- 3: destination
 
 -- Config
-local useChannel = 256
--- local chatWhitelist = {"64_Tesseract", "IEATDIRT52", "Skyhawk_0v0_"}
+local useChannel = settings.get("remman.channel", 256)
 
+local modem = peripheral.find(settings.get("remman.modemside", "modem"))
+local chat = peripheral.find(settings.get("remman.chatside", "chatBox"))
 
-local modem = peripheral.find("modem")
-local chat = peripheral.find("chatBox")
-
-if not modem and not chat then io.stderr:write("No modems attached!\n") end
+if not modem and not chat then
+    io.stderr:write("No modem nor chatbox attached!\n")
+    return
+end
 
 if modem then modem.open(useChannel) end
 
@@ -83,14 +84,14 @@ function parseComms (replyChain, data, destination)
 
     else  -- No more destinations means this is the targeted computer
         if data[1] == "to" then  -- Player forwarding commands ("0 to 1 to 2")
-            local nextComputer = data[2]  -- Getting destination from "to ID"
+            local nextComputer = data[2]  -- Getting destination ID from "to ID"
             table.remove(data, 1)  -- Remove "to" command
             table.remove(data, 1)  -- Remove destination from data
             sendMessage(replyChain, data, {{"modem", nextComputer}})
 
         elseif data[1] == "term" then  -- Sending data to a terminal
             table.remove(data, 1)  -- Remove "term" command
-            sendMessage(replyChain, data, {{"term"}})
+            sendMessage(replyChain, data, {{"term"}})  -- Set term to destination & send
 
         elseif data[1] == "info" then  -- Print info about computer
             local info = {id=os.computerID(), label=os.computerLabel(), processes={}}
@@ -108,10 +109,15 @@ function parseComms (replyChain, data, destination)
             if turtle then info.fuel = turtle.getFuelLevel() end
 
             for p = 1,multishell.getCount() do  -- List running programs
-                table.insert(info.processes, multishell.getTitle(p))
+                table.insert(info.processes, "[" .. p .. "] " .. multishell.getTitle(p))
             end
 
             sendMessage({}, info, replyChain)
+
+        elseif data[1] == "exec" then  -- Start new process
+            table.remove(data, 1)  -- Remove "exec" command
+            processID = shell.openTab(data)  -- Run remaining arguments
+            sendMessage({}, {id=processID}, replyChain)
 
         else  -- Command unknown, pass data as event
             os.queueEvent("comms_receive", replyChain, data)
@@ -130,7 +136,7 @@ function sendMessage (replyChain, data, destination)
                 chat.sendMessage(message, prefix)
                 -- end
             else  -- Request was private, send only to requesting player
-                chat.sendMessageToPlayer(message, destination[1][2], prefix)
+                chat.sendMessageToPlayer(message, destination[1][2], "$" .. prefix)
             end
         else
             io.stderr:write("Cannot send chat message!\n")
@@ -162,5 +168,5 @@ function contains (table, value)
 end
 
 
-multishell.setTitle(multishell.getCurrent(), "RemMan 1.2")
+multishell.setTitle(multishell.getCurrent(), "RemMan 1.3")
 parallel.waitForAny(eventLoop, termInput)
