@@ -16,8 +16,8 @@
 -- Config
 local useChannel = settings.get("remman.channel", 256)
 
-local modem = peripheral.find(settings.get("remman.modemside", "modem"))
-local chat = peripheral.find(settings.get("remman.chatside", "chatBox"))
+local modem = peripheral.wrap(settings.get("remman.modemside", "")) or peripheral.find("modem")
+local chat = peripheral.wrap(settings.get("remman.chatside", "")) or peripheral.find("chatBox")
 
 if not modem and not chat then
     io.stderr:write("No modem nor chatbox attached!\n")
@@ -109,14 +109,14 @@ function parseComms (replyChain, data, destination)
             if turtle then info.fuel = turtle.getFuelLevel() end
 
             for p = 1,multishell.getCount() do  -- List running programs
-                table.insert(info.processes, "[" .. p .. "] " .. multishell.getTitle(p))
+                table.insert(info.processes, multishell.getTitle(p))
             end
 
             sendMessage({}, info, replyChain)
 
         elseif data[1] == "exec" then  -- Start new process
             table.remove(data, 1)  -- Remove "exec" command
-            processID = shell.openTab(data)  -- Run remaining arguments
+            processID = shell.openTab(table.unpack(data))  -- Run remaining arguments
             sendMessage({}, {id=processID}, replyChain)
 
         else  -- Command unknown, pass data as event
