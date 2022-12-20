@@ -9,9 +9,9 @@ args = {...}
 
 command = nil
 replyChain = nil
-chatBroadcast = {{"modem", "minercontroller"}, {"chat"}}
+chatBroadcast = settings.get("miner.broadcast", {{"modem", "tesseractbase"}, {"chat", "64_Tesseract"}})
 
-canRefuel = true
+canRefuel = settings.get("miner.canrefuel", false)
 
 useless = {
     "minecraft:stone",
@@ -23,6 +23,7 @@ useless = {
     "minecraft:gravel",
     "minecraft:netherrack",
     "minecraft:tuff",
+    "minecraft:deepslate",
     "minecraft:cobbled_deepslate",
     "allure:root_item"
 }
@@ -144,7 +145,8 @@ function hasSpace ()
 end
 
 function deposit ()
-    keepItems = {["minecraft:coal"] = true, ["minecraft:charcoal"] = true, ["minecraft:blaze_rod"] = true}
+    -- keepItems = {["minecraft:coal"] = true, ["minecraft:charcoal"] = true, ["minecraft:blaze_rod"] = true}
+    keepItems = {["minecraft:blaze_rod"]=true}
     
     for slot = 1, 16 do
         turtle.select(slot)
@@ -245,8 +247,12 @@ function loadSession ()
 end
 
 function main ()
+    withdrawFuel()
+    refuelAny()
+
     while running do
         if depth ~= 0 then
+            logMsg({status="descending"})
             turtle.select(1)
             for height = 1, depth do
                 turtle.digDown()
@@ -255,6 +261,8 @@ function main ()
         end
         orientation = 1
         
+        logMsg({status="mining"})
+
         while running do
             turtle.select(1)
             
@@ -313,6 +321,7 @@ function main ()
                 turtle.digDown()
                 turtle.down()
                 depth = depth + 1
+                logMsg({depth=depth, targetDepth=targetDepth, percentDone=math.floor(100 * depth / targetDepth)})
                 
                 saveSession()
                 
@@ -351,16 +360,18 @@ function parseCommands ()
     while true do
         _, replyChain, command = os.pullEvent("comms_receive")
         
-        if command[1] == "stop" then
-            logMsg({status="finishing", reason="command"})
-            -- saveSession()
-            running = false
-        elseif command[1] == "pos" then
-            logMsg({position={x=pos[1], z=pos[2], level=depth}})
-        end
+        if command[1] == "miner" then
+            if command[2] == "stop" then
+                logMsg({status="finishing", reason="command"})
+                -- saveSession()
+                running = false
+            elseif command[2] == "pos" then
+                logMsg({position={x=pos[1], z=pos[2], depth=depth, targetDepth=targetDepth, percentDone=math.floor(100 * depth / targetDepth)}})
+            end
 
-        command = nil
-        replyChain = nil
+            command = nil
+            replyChain = nil
+        end
     end
     
     while waitForLoop do
@@ -369,7 +380,7 @@ function parseCommands ()
 end
 
 function logMsg (msg)
-    os.queueEvent("comms_send", msg, replyChain or chatBroadcast)
+    os.queueEvent("comms_send", {"minerstatus", msg}, replyChain or chatBroadcast)
 end
 
 if args[1] ~= "resume" then
@@ -381,7 +392,8 @@ else
 end
 
 if diameter == nil or targetDepth == nil or depth == nil then
-    error("miner.lua <diameter> <target depth> [starting depth]\n      ... resume")
+    io.stderr:write("miner.lua <diameter> <target depth> [starting depth]\n      ... resume\n")
+    return
 end
 
 logMsg({status="starting", diameter=diameter, targetDepth=targetDepth, startingDepth=depth})
